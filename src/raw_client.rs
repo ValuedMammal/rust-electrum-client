@@ -883,6 +883,17 @@ impl<T: Read + Write> ElectrumApi for RawClient<T> {
             .ok_or_else(|| Error::InvalidResponse(result.clone()))
     }
 
+    fn fee_histogram(&self) -> Result<Vec<(f32, u32)>, Error> {
+        let req = Request::new_id(
+            self.last_id.fetch_add(1, Ordering::SeqCst),
+            "mempool.get_fee_histogram",
+            vec![],
+        );
+        let res = self.call(req)?;
+
+        Ok(serde_json::from_value(res)?)
+    }
+
     fn script_subscribe(&self, script: &Script) -> Result<Option<ScriptStatus>, Error> {
         let script_hash = script.to_electrum_scripthash();
         let mut script_notifications = self.script_notifications.lock()?;
@@ -1163,6 +1174,14 @@ mod test {
 
         let resp = client.estimate_fee(10).unwrap();
         assert!(resp > 0.0);
+    }
+
+    #[test]
+    fn test_fee_histogram() {
+        let client = RawClient::new(get_test_server(), None).unwrap();
+
+        let resp = client.fee_histogram().unwrap();
+        assert!(!resp.is_empty());
     }
 
     #[test]

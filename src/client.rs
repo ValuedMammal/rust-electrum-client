@@ -217,6 +217,11 @@ impl ElectrumApi for Client {
     }
 
     #[inline]
+    fn fee_histogram(&self) -> Result<Vec<(f32, u32)>, Error> {
+        impl_inner_call!(self, fee_histogram)
+    }
+
+    #[inline]
     fn script_subscribe(&self, script: &Script) -> Result<Option<ScriptStatus>, Error> {
         impl_inner_call!(self, script_subscribe, script)
     }

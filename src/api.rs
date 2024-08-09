@@ -100,6 +100,9 @@ pub trait ElectrumApi {
     /// Returns the minimum accepted fee by the server's node in **Bitcoin, not Satoshi**.
     fn relay_fee(&self) -> Result<f64, Error>;
 
+    /// Fee histogram
+    fn fee_histogram(&self) -> Result<Vec<(f32, u32)>, Error>;
+
     /// Subscribes to notifications for activity on a specific *scriptPubKey*.
     ///
     /// Returns a [`ScriptStatus`](../types/type.ScriptStatus.html) when successful that represents
