@@ -11,7 +11,7 @@ use bitcoin::blockdata::block;
 use bitcoin::consensus::encode::deserialize;
 use bitcoin::hashes::{sha256, Hash};
 use bitcoin::hex::{DisplayHex, FromHex};
-use bitcoin::{Script, Txid};
+use bitcoin::{FeeRate, Script, Txid};
 
 use serde::{de, Deserialize, Serialize};
 
@@ -238,6 +238,13 @@ pub struct GetMerkleRes {
     /// The merkle path of the transaction.
     #[serde(deserialize_with = "from_hex_array")]
     pub merkle: Vec<[u8; 32]>,
+}
+
+/// Response to [`fee_histogram`](../client/struct.Client.html#method.fee_histogram) request.
+#[derive(Clone, Debug, Deserialize)]
+pub struct FeeHistogramRes {
+    /// Array of `(FeeRate, vsize)` tuples.
+    pub fees: Vec<(FeeRate, usize)>,
 }
 
 /// Notification of a new block header

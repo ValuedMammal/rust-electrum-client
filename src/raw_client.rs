@@ -17,7 +17,7 @@ use log::{debug, error, info, trace, warn};
 
 use bitcoin::consensus::encode::deserialize;
 use bitcoin::hex::{DisplayHex, FromHex};
-use bitcoin::{Script, Txid};
+use bitcoin::{FeeRate, Script, Txid};
 
 #[cfg(feature = "use-openssl")]
 use openssl::ssl::{SslConnector, SslMethod, SslStream, SslVerifyMode};
@@ -883,7 +883,7 @@ impl<T: Read + Write> ElectrumApi for RawClient<T> {
             .ok_or_else(|| Error::InvalidResponse(result.clone()))
     }
 
-    fn fee_histogram(&self) -> Result<Vec<(f32, u32)>, Error> {
+    fn fee_histogram(&self) -> Result<FeeHistogramRes, Error> {
         let req = Request::new_id(
             self.last_id.fetch_add(1, Ordering::SeqCst),
             "mempool.get_fee_histogram",
@@ -891,7 +891,17 @@ impl<T: Read + Write> ElectrumApi for RawClient<T> {
         );
         let res = self.call(req)?;
 
-        Ok(serde_json::from_value(res)?)
+        let fees: Vec<(f32, usize)> = serde_json::from_value(res)?;
+        let fees: Vec<_> = fees
+            .into_iter()
+            .map(|(feerate, vsize)| {
+                let sat_kwu = (feerate * 250.0) as u64;
+                let feerate = FeeRate::from_sat_per_kwu(sat_kwu);
+                (feerate, vsize)
+            })
+            .collect();
+
+        Ok(FeeHistogramRes { fees })
     }
 
     fn script_subscribe(&self, script: &Script) -> Result<Option<ScriptStatus>, Error> {
@@ -1181,7 +1191,7 @@ mod test {
         let client = RawClient::new(get_test_server(), None).unwrap();
 
         let resp = client.fee_histogram().unwrap();
-        assert!(!resp.is_empty());
+        assert!(!resp.fees.is_empty());
     }
 
     #[test]

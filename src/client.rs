@@ -217,7 +217,7 @@ impl ElectrumApi for Client {
     }
 
     #[inline]
-    fn fee_histogram(&self) -> Result<Vec<(f32, u32)>, Error> {
+    fn fee_histogram(&self) -> Result<FeeHistogramRes, Error> {
         impl_inner_call!(self, fee_histogram)
     }
 

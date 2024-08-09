@@ -101,7 +101,7 @@ pub trait ElectrumApi {
     fn relay_fee(&self) -> Result<f64, Error>;
 
     /// Fee histogram
-    fn fee_histogram(&self) -> Result<Vec<(f32, u32)>, Error>;
+    fn fee_histogram(&self) -> Result<FeeHistogramRes, Error>;
 
     /// Subscribes to notifications for activity on a specific *scriptPubKey*.
     ///
