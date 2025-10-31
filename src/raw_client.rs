@@ -19,10 +19,10 @@ use bitcoin::consensus::encode::deserialize;
 use bitcoin::hex::{DisplayHex, FromHex};
 use bitcoin::{Script, Txid};
 
-#[cfg(feature = "use-openssl")]
+#[cfg(feature = "openssl")]
 use openssl::ssl::{SslConnector, SslMethod, SslStream, SslVerifyMode};
 
-#[cfg(any(feature = "use-rustls", feature = "use-rustls-ring"))]
+#[cfg(any(feature = "rustls", feature = "rustls-ring"))]
 #[allow(unused_imports)]
 use rustls::{
     pki_types::ServerName,
@@ -222,10 +222,10 @@ fn connect_with_total_timeout<A: ToSocketAddrs>(
     Err(Error::AllAttemptsErrored(errors))
 }
 
-#[cfg(feature = "use-openssl")]
+#[cfg(feature = "openssl")]
 /// Transport type used to establish an OpenSSL TLS encrypted/authenticated connection with the server
 pub type ElectrumSslStream = SslStream<TcpStream>;
-#[cfg(feature = "use-openssl")]
+#[cfg(feature = "openssl")]
 impl RawClient<ElectrumSslStream> {
     /// Creates a new SSL client and tries to connect to `socket_addr`. Optionally, if
     /// `validate_domain` is `true`, validate the server's certificate.
@@ -283,7 +283,7 @@ impl RawClient<ElectrumSslStream> {
     }
 }
 
-#[cfg(any(feature = "use-rustls", feature = "use-rustls-ring"))]
+#[cfg(any(feature = "rustls", feature = "rustls-ring"))]
 #[allow(unused)]
 mod danger {
     use crate::raw_client::ServerName;
@@ -338,14 +338,14 @@ mod danger {
 }
 
 #[cfg(all(
-    any(feature = "use-rustls", feature = "use-rustls-ring"),
-    not(feature = "use-openssl")
+    any(feature = "rustls", feature = "rustls-ring"),
+    not(feature = "openssl")
 ))]
 /// Transport type used to establish a Rustls TLS encrypted/authenticated connection with the server
 pub type ElectrumSslStream = StreamOwned<ClientConnection, TcpStream>;
 #[cfg(all(
-    any(feature = "use-rustls", feature = "use-rustls-ring"),
-    not(feature = "use-openssl")
+    any(feature = "rustls", feature = "rustls-ring"),
+    not(feature = "openssl")
 ))]
 impl RawClient<ElectrumSslStream> {
     /// Creates a new SSL client and tries to connect to `socket_addr`. Optionally, if
@@ -384,9 +384,9 @@ impl RawClient<ElectrumSslStream> {
         validate_domain: bool,
         tcp_stream: TcpStream,
     ) -> Result<Self, Error> {
-        #[cfg(not(feature = "use-rustls-ring"))]
+        #[cfg(not(feature = "rustls-ring"))]
         let crypto_provider = rustls::crypto::aws_lc_rs::default_provider();
-        #[cfg(feature = "use-rustls-ring")]
+        #[cfg(feature = "rustls-ring")]
         let crypto_provider = rustls::crypto::ring::default_provider();
 
         // We install a crypto provider depending on the set feature.
@@ -468,11 +468,7 @@ impl RawClient<ElectrumProxyStream> {
     }
 
     #[cfg(all(
-        any(
-            feature = "use-openssl",
-            feature = "use-rustls",
-            feature = "use-rustls-ring",
-        ),
+        any(feature = "openssl", feature = "rustls", feature = "rustls-ring",),
         feature = "proxy",
     ))]
     /// Creates a new TLS client that connects to `target_addr` using `proxy_addr` as a socks proxy
