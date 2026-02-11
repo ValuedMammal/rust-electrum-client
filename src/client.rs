@@ -312,7 +312,7 @@ impl ElectrumApi for Client {
     fn batch_estimate_fee<'s, I>(&self, numbers: I) -> Result<Vec<f64>, Error>
     where
         I: IntoIterator + Clone,
-        I::Item: Borrow<usize>,
+        I::Item: Borrow<(usize, Option<EstimationMode>)>,
     {
         impl_inner_call!(self, batch_estimate_fee, numbers.clone())
     }

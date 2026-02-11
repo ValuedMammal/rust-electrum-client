@@ -132,7 +132,7 @@ where
     fn batch_estimate_fee<I>(&self, numbers: I) -> Result<Vec<f64>, Error>
     where
         I: IntoIterator + Clone,
-        I::Item: Borrow<usize>,
+        I::Item: Borrow<(usize, Option<EstimationMode>)>,
     {
         (**self).batch_estimate_fee(numbers)
     }
@@ -398,7 +398,7 @@ pub trait ElectrumApi {
     fn batch_estimate_fee<I>(&self, numbers: I) -> Result<Vec<f64>, Error>
     where
         I: IntoIterator + Clone,
-        I::Item: Borrow<usize>;
+        I::Item: Borrow<(usize, Option<EstimationMode>)>;
 
     /// Broadcasts the raw bytes of a transaction to the network.
     fn transaction_broadcast_raw(&self, raw_tx: &[u8]) -> Result<Txid, Error>;
@@ -618,7 +618,7 @@ mod test {
         fn batch_estimate_fee<I>(&self, _: I) -> Result<Vec<f64>, super::Error>
         where
             I: IntoIterator + Clone,
-            I::Item: std::borrow::Borrow<usize>,
+            I::Item: std::borrow::Borrow<(usize, Option<crate::EstimationMode>)>,
         {
             unreachable!()
         }

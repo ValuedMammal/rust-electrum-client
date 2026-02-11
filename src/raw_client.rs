@@ -1194,21 +1194,9 @@ impl<T: Read + Write> ElectrumApi for RawClient<T> {
     fn batch_estimate_fee<'s, I>(&self, numbers: I) -> Result<Vec<f64>, Error>
     where
         I: IntoIterator + Clone,
-        I::Item: Borrow<usize>,
+        I::Item: Borrow<(usize, Option<EstimationMode>)>,
     {
-        let mut batch = Batch::default();
-        for i in numbers {
-            batch.estimate_fee(*i.borrow(), None);
-        }
-
-        let resp = self.batch_call(&batch)?;
-        let mut answer = Vec::new();
-
-        for x in resp {
-            answer.push(serde_json::from_value(x)?);
-        }
-
-        Ok(answer)
+        impl_batch_call!(self, numbers, estimate_fee)
     }
 
     fn transaction_broadcast_raw(&self, raw_tx: &[u8]) -> Result<Txid, Error> {
@@ -1344,6 +1332,7 @@ mod test {
 
     use super::{ElectrumSslStream, RawClient};
     use crate::api::ElectrumApi;
+    use crate::EstimationMode;
 
     fn get_test_client() -> RawClient<ElectrumSslStream> {
         let server =
@@ -1535,7 +1524,12 @@ mod test {
     fn test_batch_estimate_fee() {
         let client = get_test_client();
 
-        let resp = client.batch_estimate_fee(vec![10, 20]).unwrap();
+        let resp = client
+            .batch_estimate_fee(vec![
+                (2, Some(EstimationMode::Conservative)),
+                (8, Some(EstimationMode::Economical)),
+            ])
+            .unwrap();
         assert_eq!(resp.len(), 2);
         assert!(resp[0] > 0.0);
         assert!(resp[1] > 0.0);
