@@ -1196,7 +1196,17 @@ impl<T: Read + Write> ElectrumApi for RawClient<T> {
         I: IntoIterator + Clone,
         I::Item: Borrow<(usize, Option<EstimationMode>)>,
     {
-        impl_batch_call!(self, numbers, estimate_fee)
+        let mut batch = Batch::default();
+        for item in numbers {
+            let &(number, mode) = item.borrow();
+            batch.estimate_fee(number, mode);
+        }
+        let response = self.batch_call(&batch)?;
+        let mut fees = vec![];
+        for value in response {
+            fees.push(serde_json::from_value(value)?);
+        }
+        Ok(fees)
     }
 
     fn transaction_broadcast_raw(&self, raw_tx: &[u8]) -> Result<Txid, Error> {

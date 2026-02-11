@@ -74,8 +74,7 @@ impl Batch {
     }
 
     /// Add one `blockchain.estimatefee` request to the batch queue
-    pub fn estimate_fee(&mut self, params: &(usize, Option<EstimationMode>)) {
-        let &(number, mode) = params;
+    pub fn estimate_fee(&mut self, number: usize, mode: Option<EstimationMode>) {
         let mut params = vec![Param::Usize(number)];
         if let Some(mode) = mode {
             params.push(Param::String(mode.to_string()));
